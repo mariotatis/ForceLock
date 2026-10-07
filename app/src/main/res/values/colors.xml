@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fl_background">#FF0E1116</color>
+    <color name="fl_icon_background">#FF1F3B73</color>
+    <color name="fl_icon_background_light">#FF2E5499</color>
+    <color name="fl_icon_foreground">#FF8FB4FF</color>
+</resources>

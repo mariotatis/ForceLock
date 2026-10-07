@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">ForceLock</string>
+    <string name="service_label">ForceLock auto-lock</string>
+    <string name="service_summary">Locks your device after a period of inactivity</string>
+    <string name="service_description">ForceLock notices when you stop pressing buttons or touching the screen, then locks your device exactly like the power button would, no matter which app or launcher is open.\n\nIt doesn\'t read what\'s on your screen, and nothing ever leaves your device.</string>
+</resources>
