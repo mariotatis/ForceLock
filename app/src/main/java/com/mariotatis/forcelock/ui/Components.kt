@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,7 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -48,7 +46,6 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -144,88 +141,6 @@ fun StatusCard(
                 "or touch, even if the launcher or a game tries to keep it awake.",
         ) {
             TextButton(onClick = onTurnOff) { Text("Turn off") }
-        }
-    }
-}
-
-@Composable
-fun DetectionCard(fullDetection: Boolean, adbCommand: String, onCopy: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    if (fullDetection) {
-        Row(
-            modifier = Modifier.padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                painterResource(R.drawable.ic_gamepad),
-                contentDescription = null,
-                tint = colors.secondary,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.width(10.dp))
-            Text(
-                "Full detection on: buttons, sticks and touches all keep your device awake.",
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.onSurfaceVariant,
-            )
-        }
-        return
-    }
-
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    val chevron by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
-    Surface(
-        onClick = { expanded = !expanded },
-        shape = CardShape,
-        color = colors.surfaceContainer,
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painterResource(R.drawable.ic_gamepad),
-                    contentDescription = null,
-                    tint = colors.primary,
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Improve detection", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "Optional · one command from a computer",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    painterResource(R.drawable.ic_expand_more),
-                    contentDescription = if (expanded) "Collapse" else "Expand",
-                    tint = colors.onSurfaceVariant,
-                    modifier = Modifier.rotate(chevron),
-                )
-            }
-            if (expanded) {
-                Text(
-                    "ForceLock already sees every button press. Games played only with the " +
-                        "touchscreen or analog sticks can go unnoticed, though. Run this once " +
-                        "with the device plugged into a computer (USB debugging on) and every " +
-                        "touch and stick movement will count too:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colors.onSurfaceVariant,
-                )
-                Text(
-                    adbCommand,
-                    fontFamily = FontFamily.Monospace,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.onSurface,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(colors.background, RoundedCornerShape(12.dp))
-                        .padding(14.dp),
-                )
-                TextButton(onClick = onCopy) { Text("Copy command") }
-            }
         }
     }
 }

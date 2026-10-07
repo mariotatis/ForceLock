@@ -25,7 +25,7 @@ Android 9 or later.
 ## How it works
 
 ForceLock quietly watches for one thing: whether you're still using your device. Every button
-press, touch or stick movement resets its timer. Once you've been away for the time you chose,
+press or touch resets its timer. Once you've been away for the time you chose,
 it locks the screen the same way the power button does.
 
 The timer pauses while the screen is off and starts fresh when you unlock, so it never gets in
@@ -39,15 +39,6 @@ your way while you're playing.
 4. Come back, pick a lock time and tap **Save**.
 
 That's it. Your device now locks itself when you put it down.
-
-### Want touches and analog sticks to count too?
-
-Out of the box, ForceLock sees every button press. Games played only by touch or analog stick
-need one extra step from a computer:
-
-```bash
-adb shell pm grant com.mariotatis.forcelock android.permission.DUMP
-```
 
 ---
 

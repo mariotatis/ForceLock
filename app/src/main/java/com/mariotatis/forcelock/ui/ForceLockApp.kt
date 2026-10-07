@@ -1,9 +1,5 @@
 package com.mariotatis.forcelock.ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -88,15 +84,6 @@ fun ForceLockApp() {
         }
     }
 
-    fun copyAdbCommand() {
-        val clipboard = context.getSystemService(ClipboardManager::class.java)
-        clipboard.setPrimaryClip(ClipData.newPlainText("adb command", adbCommand(context)))
-        // Android 13+ shows its own "Copied" confirmation.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            scope.launch { snackbar.showSnackbar("Command copied.") }
-        }
-    }
-
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -118,13 +105,6 @@ fun ForceLockApp() {
                     onOpenAppInfo = { DeviceStatus.openAppInfo(context) },
                     onTurnOff = ::turnOff,
                 )
-                if (status.lockServiceEnabled) {
-                    DetectionCard(
-                        fullDetection = status.systemActivityAvailable,
-                        adbCommand = adbCommand(context),
-                        onCopy = ::copyAdbCommand,
-                    )
-                }
             }
             val picker: @Composable () -> Unit = {
                 TimePicker(
@@ -188,5 +168,3 @@ private fun ScrollingColumn(modifier: Modifier, content: @Composable () -> Unit)
     ) { content() }
 }
 
-private fun adbCommand(context: Context) =
-    "adb shell pm grant ${context.packageName} android.permission.DUMP"

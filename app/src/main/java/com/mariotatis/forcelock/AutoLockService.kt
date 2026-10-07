@@ -8,12 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
+import android.view.Gravity
 import android.view.KeyEvent
+import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 
@@ -21,11 +25,12 @@ import androidx.core.content.ContextCompat
  * Watches for user inactivity and locks the device exactly like the power button does
  * ([GLOBAL_ACTION_LOCK_SCREEN]), regardless of which app or launcher is in front.
  *
- * Activity comes from one of two sources:
- *  - The system's own activity clock ([SystemActivity]) when DUMP has been granted. It sees every
- *    input, including touches inside games and analog sticks.
- *  - Otherwise, key events (all controller buttons) plus a few interaction events. Keys are only
- *    filtered in this mode so button presses don't pay an extra hop when it isn't needed.
+ * Activity is detected without any extra setup:
+ *  - Touches anywhere, through an invisible 1px overlay that watches outside touches.
+ *  - Key events (all controller buttons), plus a few interaction events.
+ * If DUMP has been granted over adb, the system's own activity clock ([SystemActivity]) is used
+ * as well, which also sees analog sticks. Keys are then no longer filtered, so button presses
+ * don't pay an extra hop when it isn't needed.
  *
  * Timing is lazy: input just records a timestamp, and a single check runs when the timeout could
  * have elapsed, then reschedules itself for the remaining time.
@@ -39,6 +44,7 @@ class AutoLockService : AccessibilityService() {
     @Volatile
     private var lastActivityUptime = SystemClock.uptimeMillis()
     private var filteringKeys: Boolean? = null
+    private var touchWatcher: View? = null
 
     private val checkRunnable = Runnable { check() }
 
@@ -72,6 +78,7 @@ class AutoLockService : AccessibilityService() {
             this, screenReceiver, filter, null, handler, ContextCompat.RECEIVER_EXPORTED,
         )
         settings.prefs.registerOnSharedPreferenceChangeListener(prefsListener)
+        addTouchWatcher()
         restartTimer()
     }
 
@@ -102,8 +109,40 @@ class AutoLockService : AccessibilityService() {
         if (!::worker.isInitialized || !worker.isAlive) return
         settings.prefs.unregisterOnSharedPreferenceChangeListener(prefsListener)
         runCatching { unregisterReceiver(screenReceiver) }
+        touchWatcher?.let { view ->
+            runCatching { getSystemService(WindowManager::class.java).removeView(view) }
+        }
+        touchWatcher = null
         handler.removeCallbacksAndMessages(null)
         worker.quitSafely()
+    }
+
+    /**
+     * A 1x1 transparent overlay with FLAG_WATCH_OUTSIDE_TOUCH: Android tells it about every touch
+     * that starts anywhere else on screen, including inside games. Accessibility overlays need no
+     * extra permission and are trusted, so the touch still reaches the app underneath.
+     */
+    @Suppress("ClickableViewAccessibility")
+    private fun addTouchWatcher() {
+        val view = View(this).apply {
+            setOnTouchListener { _, _ ->
+                markActivity()
+                false
+            }
+        }
+        val params = WindowManager.LayoutParams(
+            1,
+            1,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSPARENT,
+        ).apply { gravity = Gravity.TOP or Gravity.START }
+        runCatching { getSystemService(WindowManager::class.java).addView(view, params) }
+            .onSuccess { touchWatcher = view }
+            .onFailure { Log.w(TAG, "Touch watcher unavailable", it) }
     }
 
     private fun markActivity() {

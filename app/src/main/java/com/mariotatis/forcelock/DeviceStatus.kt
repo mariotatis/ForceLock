@@ -10,12 +10,10 @@ import android.provider.Settings
 /** Snapshot of what ForceLock is allowed to do right now. */
 data class DeviceStatus(
     val lockServiceEnabled: Boolean,
-    val systemActivityAvailable: Boolean,
 ) {
     companion object {
         fun read(context: Context) = DeviceStatus(
             lockServiceEnabled = isLockServiceEnabled(context),
-            systemActivityAvailable = SystemActivity.isAvailable(context),
         )
 
         private fun isLockServiceEnabled(context: Context): Boolean {
