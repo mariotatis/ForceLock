@@ -11,6 +11,20 @@
         android:name="android.permission.DUMP"
         tools:ignore="ProtectedPermissions" />
 
+    <!--
+        Lets ForceLock list launchable apps (and home apps such as ES-DE) for per-app lock times.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -20,9 +34,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ForceLock">
+        <!--
+            Its own task affinity, instead of the package name. The Odin's launcher remembers
+            recents cards locked with its padlock by affinity, and that padlock can't be tapped
+            off in landscape, so a card locked by accident could never be swiped away again.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:taskAffinity="com.mariotatis.forcelock.main"
             android:theme="@style/Theme.ForceLock"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
