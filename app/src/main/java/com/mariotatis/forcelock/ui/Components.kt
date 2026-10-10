@@ -6,7 +6,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -21,11 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +42,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -53,8 +51,8 @@ import com.mariotatis.forcelock.DeviceStatus
 import com.mariotatis.forcelock.LockTimeout
 import com.mariotatis.forcelock.R
 
-private val CardShape = RoundedCornerShape(24.dp)
-private val TileShape = RoundedCornerShape(18.dp)
+val CardShape = RoundedCornerShape(24.dp)
+val TileShape = RoundedCornerShape(18.dp)
 
 @Composable
 fun Header() {
@@ -106,7 +104,7 @@ fun StatusCard(
                 accentContainer = colors.tertiaryContainer,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = onAllowAccess) { Text("Open settings") }
+                OutlinedButton(onClick = onAllowAccess) { Text("Open settings") }
                 Spacer(Modifier.width(8.dp))
                 TextButton(onClick = { showHelp = !showHelp }) { Text("Option greyed out?") }
             }
@@ -129,40 +127,40 @@ fun StatusCard(
             accent = colors.primary,
             accentContainer = colors.primaryContainer,
             title = "Ready when you are",
-            body = "Choose how long your device can sit untouched, then tap Save.",
+            body = "Pick how long your device can sit untouched.",
         )
 
         else -> InfoCard(
-            icon = R.drawable.ic_check_circle,
+            icon = null,
             accent = colors.secondary,
             accentContainer = colors.secondaryContainer,
             title = "Auto-lock is on",
-            body = "Your device locks after ${saved.spokenLabel} without a button press " +
-                "or touch, even if the launcher or a game tries to keep it awake.",
+            body = listOf(
+                "Locks after ${saved.spokenLabel} with no button press or touch.",
+                "Works even when a game or launcher keeps the screen on.",
+                "Apps in Per-app times use their own time.",
+            ).joinToString("\n"),
         ) {
-            TextButton(onClick = onTurnOff) { Text("Turn off") }
+            OutlinedButton(onClick = onTurnOff) { Text("Turn off") }
         }
     }
 }
 
 @Composable
-fun TimePicker(selected: LockTimeout?, saved: LockTimeout?, onSelect: (LockTimeout) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Column(Modifier.padding(horizontal = 4.dp)) {
-            Text("Lock after", style = MaterialTheme.typography.titleLarge)
-            Text(
-                "How long your device can sit idle before it locks.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+/** Tapping a time saves it right away; the outlined tile is the current setting. */
+fun TimePicker(saved: LockTimeout?, onSelect: (LockTimeout) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader("Lock after")
         LockTimeout.entries.chunked(COLUMNS).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { option ->
-                    TimeTile(
-                        option = option,
-                        isSelected = option == selected,
-                        isCurrent = option == saved,
+                    val (amount, unit) = option.amountAndUnit()
+                    OptionTile(
+                        amount = amount,
+                        unit = unit,
+                        spokenLabel = option.spokenLabel,
+                        isSelected = option == saved,
+                        isCurrent = false,
                         onClick = { onSelect(option) },
                         modifier = Modifier.weight(1f),
                     )
@@ -173,9 +171,12 @@ fun TimePicker(selected: LockTimeout?, saved: LockTimeout?, onSelect: (LockTimeo
     }
 }
 
+/** A selectable tile showing an amount with a smaller unit, e.g. "5 min". */
 @Composable
-private fun TimeTile(
-    option: LockTimeout,
+fun OptionTile(
+    amount: String,
+    unit: String,
+    spokenLabel: String,
     isSelected: Boolean,
     isCurrent: Boolean,
     onClick: () -> Unit,
@@ -184,160 +185,90 @@ private fun TimeTile(
     val colors = MaterialTheme.colorScheme
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val container by animateColorAsState(
-        if (isSelected) colors.primary else colors.surfaceContainerHigh, label = "tile",
+    val outline by animateColorAsState(
+        if (isSelected) colors.primary else Color.Transparent, label = "tile",
     )
-    val content = if (isSelected) colors.onPrimary else colors.onSurface
-    val (amount, unit) = option.amountAndUnit()
 
     Surface(
         onClick = onClick,
         shape = TileShape,
-        color = container,
-        contentColor = content,
-        // A clear ring for D-pad navigation on handhelds.
-        border = if (focused) BorderStroke(3.dp, colors.onSurface) else null,
+        color = colors.surfaceContainerHigh,
+        contentColor = if (isSelected) colors.primary else colors.onSurface,
+        // The selection is an outline; D-pad focus gets a thicker, brighter ring on top.
+        border = if (focused) BorderStroke(3.dp, colors.onSurface) else BorderStroke(2.dp, outline),
         interactionSource = interaction,
         modifier = modifier
-            .height(76.dp)
+            .height(40.dp)
             .semantics {
                 role = Role.RadioButton
                 selected = isSelected
-                contentDescription = option.spokenLabel
+                contentDescription = spokenLabel
             },
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(amount) }
-                    withStyle(SpanStyle(fontSize = MaterialTheme.typography.labelLarge.fontSize)) {
-                        append(" $unit")
+                    if (unit.isNotEmpty()) {
+                        withStyle(SpanStyle(fontSize = MaterialTheme.typography.labelMedium.fontSize)) {
+                            append(" $unit")
+                        }
                     }
                 },
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleSmall,
             )
             if (isCurrent) {
                 Box(
                     Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 10.dp)
-                        .size(8.dp)
-                        .background(colors.secondary, CircleShape)
-                        // Keeps the green dot crisp on the light selected tile.
-                        .border(1.5.dp, if (isSelected) colors.onPrimary else Color.Transparent, CircleShape),
+                        .padding(bottom = 3.dp)
+                        .size(5.dp)
+                        .background(colors.secondary, CircleShape),
                 )
             }
         }
     }
 }
 
+/** A section title with a compact action at the end of the same row. */
 @Composable
-fun SaveButton(selected: LockTimeout?, saved: LockTimeout?, onSave: () -> Unit) {
-    val alreadySaved = selected != null && selected == saved
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Button(
-            onClick = onSave,
-            enabled = selected != null && !alreadySaved,
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-        ) {
-            if (alreadySaved) {
-                Icon(
-                    painterResource(R.drawable.ic_check_circle),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-            }
-            Text(
-                when {
-                    selected == null -> "Choose a time"
-                    alreadySaved -> "Saved"
-                    else -> "Save"
-                },
-            )
-        }
-        if (saved != null) {
-            Row(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier
-                        .size(6.dp)
-                        .background(MaterialTheme.colorScheme.secondary, CircleShape),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "Current setting",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ConfirmDialog(
-    timeout: LockTimeout,
-    previous: LockTimeout?,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
+fun SectionHeader(
+    title: String,
+    style: TextStyle = MaterialTheme.typography.titleLarge,
+    action: (@Composable () -> Unit)? = null,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(painterResource(R.drawable.ic_lock), contentDescription = null) },
-        title = { Text(if (previous == null) "Turn on auto-lock?" else "Change auto-lock time?") },
-        text = {
-            Text(
-                buildAnnotatedString {
-                    append("Your device will lock after ")
-                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                        append(timeout.spokenLabel)
-                    }
-                    if (previous != null) append(" (instead of ${previous.spokenLabel})")
-                    append(
-                        " without any activity, no matter which app or launcher is open. " +
-                            "Unlock it the usual way.",
-                    )
-                },
-            )
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) { Text(if (previous == null) "Turn on" else "Change") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        shape = CardShape,
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = style, modifier = Modifier.weight(1f))
+        action?.invoke()
+    }
 }
 
 @Composable
 private fun StepList(steps: List<String>, accent: Color, accentContainer: Color) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         steps.forEachIndexed { index, step ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(20.dp)
                         .background(accentContainer, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         "${index + 1}",
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         color = accent,
                     )
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(10.dp))
                 Text(
                     step,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
@@ -346,7 +277,7 @@ private fun StepList(steps: List<String>, accent: Color, accentContainer: Color)
 }
 
 @Composable
-private fun InfoCard(
+fun InfoCard(
     @DrawableRes icon: Int?,
     accent: Color,
     accentContainer: Color,
@@ -361,7 +292,7 @@ private fun InfoCard(
             .fillMaxWidth()
             .animateContentSize(),
     ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) {
                     IconBadge(icon = icon, tint = accent, background = accentContainer, size = 40)
@@ -371,7 +302,7 @@ private fun InfoCard(
                 Text(
                     title,
                     style = if (icon == null) {
-                        MaterialTheme.typography.titleLarge
+                        MaterialTheme.typography.titleMedium
                     } else {
                         MaterialTheme.typography.titleMedium
                     },
@@ -380,7 +311,7 @@ private fun InfoCard(
             if (body != null) {
                 Text(
                     body,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -390,7 +321,7 @@ private fun InfoCard(
 }
 
 @Composable
-private fun IconBadge(@DrawableRes icon: Int, tint: Color, background: Color, size: Int) {
+fun IconBadge(@DrawableRes icon: Int, tint: Color, background: Color, size: Int) {
     Box(
         modifier = Modifier
             .size(size.dp)
@@ -406,10 +337,10 @@ private fun IconBadge(@DrawableRes icon: Int, tint: Color, background: Color, si
     }
 }
 
-private fun LockTimeout.amountAndUnit(): Pair<String, String> = when {
+fun LockTimeout.amountAndUnit(): Pair<String, String> = when {
     millis < 60_000 -> "${millis / 1000}" to "sec"
     millis < 3_600_000 -> "${millis / 60_000}" to "min"
     else -> "${millis / 3_600_000}" to "hr"
 }
 
-private const val COLUMNS = 4
+const val COLUMNS = 4

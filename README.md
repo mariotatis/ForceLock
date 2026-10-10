@@ -16,9 +16,15 @@ Android 9 or later.
 
 ## Why you'll like it
 
-- **Set it once.** Choose 10 sec, 30 sec, 1, 5, 10, 15, 30 min or 1 hr, tap Save, done.
+- **Set it once.** Tap 15 sec, 30 sec, 1, 3, 5, 10, 15 or 20 min. That's it.
 - **A real lock.** Your screen turns off and your usual PIN, pattern or fingerprint lock comes up.
 - **Nothing keeps it awake.** It doesn't matter which app, game or launcher is open.
+- **Videos keep playing.** YouTube, Netflix and other video players never lock mid-video. Pause
+  or finish, and the timer starts from there.
+- **Per-app times.** Give any app its own lock time, or none at all. A longer time for games
+  with long cutscenes, a shorter one for your launcher.
+- **Scraping-friendly.** Turn on *Stay awake while downloading* for ES-DE, and it waits for
+  scraping to finish before locking.
 - **Made for handhelds.** A dark, landscape-friendly design you can use entirely with a controller.
 - **Private by design.** No internet, no tracking, and it never reads what's on your screen.
 
@@ -31,12 +37,16 @@ it locks the screen the same way the power button does.
 The timer pauses while the screen is off and starts fresh when you unlock, so it never gets in
 your way while you're playing.
 
+Apps with their own time use it while they're on screen; every other app uses your main time.
+With *Stay awake while downloading* on, ForceLock checks how much data your device is receiving
+(not what it is) and holds off while downloads keep coming in.
+
 ## Get started
 
 1. Install ForceLock on your device.
 2. Open it and tap **Open settings**.
 3. Choose **ForceLock auto-lock** and turn on **Use ForceLock auto-lock**.
-4. Come back, pick a lock time and tap **Save**.
+4. Come back and tap a lock time.
 
 That's it. Your device now locks itself when you put it down.
 
