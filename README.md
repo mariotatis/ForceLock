@@ -10,8 +10,11 @@ Made for handhelds like the **AYN Odin 2 Portal** running **ES-DE**, and works o
 Android 9 or later.
 
 <p align="center">
-  <img src="docs/setup.png" alt="ForceLock setup screen" width="49%" />
-  <img src="docs/ready.png" alt="ForceLock lock time picker" width="49%" />
+  <img src="docs/setup.png" alt="ForceLock asking for the accessibility permission" width="49%" />
+  <img src="docs/ready.png" alt="ForceLock with auto-lock on and per-app times for ES-DE and Fortnite" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/per-app.png" alt="Setting a per-app time for ES-DE that waits for downloads" width="49%" />
 </p>
 
 ## Why you'll like it
