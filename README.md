@@ -26,8 +26,9 @@ Android 9 or later.
   or finish, and the timer starts from there.
 - **Per-app times.** Give any app its own lock time, or none at all. A longer time for games
   with long cutscenes, a shorter one for your launcher.
-- **Scraping-friendly.** Turn on *Stay awake while downloading* for ES-DE, and it waits for
-  scraping to finish before locking.
+- **Downloads finish.** Turn on *Stay awake while downloading* for any app, and it waits for
+  downloads to finish before locking: a frontend scraping artwork, a game fetching an update,
+  a big file transfer.
 - **Made for handhelds.** A dark, landscape-friendly design you can use entirely with a controller.
 - **Private by design.** No internet, no tracking, and it never reads what's on your screen.
 
