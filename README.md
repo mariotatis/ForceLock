@@ -22,8 +22,8 @@ Android 9 or later.
 - **Set it once.** Tap 15 sec, 30 sec, 1, 3, 5, 10, 15 or 20 min. That's it.
 - **A real lock.** Your screen turns off and your usual PIN, pattern or fingerprint lock comes up.
 - **Nothing keeps it awake.** It doesn't matter which app, game or launcher is open.
-- **Videos keep playing.** YouTube, Netflix and other video players never lock mid-video. Pause
-  or finish, and the timer starts from there.
+- **Videos keep playing.** YouTube, Netflix and other streaming and video apps never lock
+  mid-video. Pause or finish, and the timer starts from there.
 - **Per-app times.** Give any app its own lock time, or none at all. A longer time for games
   with long cutscenes, a shorter one for your launcher.
 - **Downloads finish.** Turn on *Stay awake while downloading* for any app, and it waits for
